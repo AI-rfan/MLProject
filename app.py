@@ -337,7 +337,7 @@ st.markdown('<div class="section-header">03 · Exploratory Data Analysis</div>',
 
 with plt.rc_context(PLOT_STYLE):
     fig, axes = plt.subplots(3, 1, figsize=(14, 12),
-                             facecolor=PLOT_STYLE["facecolor"])
+                             facecolor=PLOT_STYLE["figure.facecolor"])
     for ax in axes:
         ax.set_facecolor(PLOT_STYLE["axes.facecolor"])
 
