@@ -648,7 +648,71 @@ if st.button("🚀 Run Full ML Pipeline"):
     st.download_button("⬇️ Download Leaderboard CSV", csv_bytes,
                        file_name="model_leaderboard.csv", mime="text/csv")
 
-    st.success("✅ Pipeline complete!")
+    st.success("✅ Pipeline complete!")   
+    
+    # --- ADD THIS TO SAVE STATE FOR THE PREDICTOR ---
+    st.session_state["is_trained"] = True
+    st.session_state["rf_model"] = rf
+    st.session_state["scaler"] = scaler
+    st.session_state["df_raw"] = df_raw
+    st.session_state["lookback"] = lookback
+
+    # ── 11. Interactive Weather Predictor ──────────────────────────────────────────
+if st.session_state.get("is_trained", False):
+    st.markdown('<div class="section-header">11 · Interactive Weather Predictor</div>', unsafe_allow_html=True)
+    st.markdown("Adjust the current weather conditions to see how it impacts power consumption, using the most recent data as historical context.")
+
+    # Retrieve variables from session state
+    df_state = st.session_state["df_raw"]
+    lookback_state = st.session_state["lookback"]
+    scaler_state = st.session_state["scaler"]
+    rf_state = st.session_state["rf_model"]
+
+    # Get the latest known weather to use as default values
+    latest_temp = float(df_state["Temperature"].iloc[-1])
+    latest_humidity = float(df_state["Humidity"].iloc[-1])
+    latest_wind = float(df_state["WindSpeed"].iloc[-1])
+
+    with st.form("weather_prediction_form"):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            user_temp = st.slider("🌡️ Temperature (°C)", -10.0, 50.0, latest_temp)
+        with c2:
+            user_humid = st.slider("💧 Humidity (%)", 0.0, 100.0, latest_humidity)
+        with c3:
+            user_wind = st.slider("💨 Wind Speed (m/s)", 0.0, 15.0, latest_wind)
+            
+        submit_prediction = st.form_submit_button("🔮 Predict Power Consumption")
+
+    if submit_prediction:
+        # 1. Grab the most recent historical window from the dataset
+        last_sequence = df_state[FEATURES].iloc[-lookback_state:].copy()
+
+        # 2. Overwrite the very last timestep with the user's input weather
+        last_sequence.iloc[-1, last_sequence.columns.get_loc("Temperature")] = user_temp
+        last_sequence.iloc[-1, last_sequence.columns.get_loc("Humidity")] = user_humid
+        last_sequence.iloc[-1, last_sequence.columns.get_loc("WindSpeed")] = user_wind
+
+        # 3. Scale the sequence using the fitted scaler
+        user_scaled = scaler_state.transform(last_sequence)
+        
+        # 4. Flatten the 3D sequence to 2D for the Random Forest model
+        user_flat = np.array([user_scaled]).reshape(1, -1)
+
+        # 5. Predict and inverse-transform to get real kW values
+        pred_scaled = rf_state.predict(user_flat)
+        pred_real = inverse_target([pred_scaled[0]], scaler_state)[0]
+
+        # 6. Display the result in your custom metric card style
+        st.markdown(f"""
+        <div class="metric-card" style="margin-top: 1rem; border-color: #f0c040; background: #1a1c10;">
+            <div class="label" style="color: #f0c040;">REAL-TIME PREDICTED POWER CONSUMPTION</div>
+            <div class="value" style="font-size: 3rem;">{pred_real:.2f} kW</div>
+            <div class="sub">Based on custom weather input & last {lookback_state} steps of history</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
 
 else:
     st.info("Configure settings in the sidebar, then click **Run Full ML Pipeline** above.")
