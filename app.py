@@ -215,14 +215,14 @@ def set_seeds():
 def styled_fig(figsize=(14, 5)):
     with plt.rc_context(PLOT_STYLE):
         fig, ax = plt.subplots(figsize=figsize,
-                               facecolor=PLOT_STYLE["facecolor"])
+                               facecolor=PLOT_STYLE["figure.facecolor"])
         ax.set_facecolor(PLOT_STYLE["axes.facecolor"])
         return fig, ax
 
 def styled_subplots(rows, cols, figsize=(16, 6)):
     with plt.rc_context(PLOT_STYLE):
         fig, axes = plt.subplots(rows, cols, figsize=figsize,
-                                 facecolor=PLOT_STYLE["facecolor"])
+                                 facecolor=PLOT_STYLE["figure.facecolor"])
         for ax in (axes.flat if hasattr(axes, "flat") else [axes]):
             ax.set_facecolor(PLOT_STYLE["axes.facecolor"])
         return fig, axes
