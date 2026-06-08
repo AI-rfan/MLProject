@@ -192,7 +192,7 @@ FEATURES = [
 TARGET_IDX = FEATURES.index(TARGET_COL)
 
 PLOT_STYLE = {
-    "facecolor": "#0d0f14",
+    "figure.facecolor": "#0d0f14",  # Changed from "facecolor"
     "text.color": "#e8e6e1",
     "axes.facecolor": "#161820",
     "axes.edgecolor": "#2a2d36",
@@ -203,6 +203,7 @@ PLOT_STYLE = {
     "grid.linestyle": "--",
     "grid.linewidth": 0.5,
 }
+
 ACCENT_COLORS = ["#f0c040", "#f07840", "#d040b0", "#40a0f0", "#40d080", "#a040f0"]
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
